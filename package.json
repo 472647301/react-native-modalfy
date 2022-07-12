@@ -1,5 +1,5 @@
 {
-  "name": "react-native-modalfy",
+  "name": "@byron-react-native/modalfy",
   "version": "3.3.1",
   "description": "Modal citizen of React Native",
   "main": "lib/commonjs/index",
