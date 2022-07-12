@@ -304,7 +304,7 @@ const StackItem = <P extends ModalfyParams>({
   }, [closeAllStackItems, closeStackItem, closeStackItems, pendingClosingAction, removeClosingAction])
 
   return (
-    <Animated.View pointerEvents="box-none" style={[styles.container, containerStyle, { justifyContent, zIndex }]}>
+    <Animated.View pointerEvents={currentModal !== stackItem.name ? 'none' : 'box-none'} style={[styles.container, containerStyle, { justifyContent, zIndex }]}>
       {renderAnimatedComponent()}
     </Animated.View>
   )
@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
 })
 
