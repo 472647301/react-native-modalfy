@@ -1,12 +1,12 @@
 import { useCallback, useMemo } from 'use-memo-one'
 import React, { useEffect, useState, memo } from 'react'
-import { Easing, Animated, StyleSheet, TouchableWithoutFeedback, Platform } from 'react-native'
+import { Easing, Animated, StyleSheet, /* TouchableWithoutFeedback, */ Platform } from 'react-native'
 
 import type { SharedProps, ModalfyParams, ModalStackItem, ModalPendingClosingAction } from '../types'
 
 import StackItem from './StackItem'
 
-import { defaultOptions, getStackItemOptions, sh } from '../utils'
+import {/*  defaultOptions, */ getStackItemOptions, sh } from '../utils'
 
 type Props<P> = SharedProps<P>
 
@@ -15,7 +15,7 @@ const ModalStack = <P extends ModalfyParams>(props: Props<P>) => {
 
   const [hasChangedBackdropColor, setBackdropColorStatus] = useState(false)
 
-  const [backdropClosedItems, setBackdropClosedItems] = useState<string[]>([])
+  const [backdropClosedItems,/* setBackdropClosedItems  */] = useState<string[]>([])
 
   const [openActionCallbacks, setOpenActionCallbacks] = useState<string[]>([])
 
@@ -27,7 +27,7 @@ const ModalStack = <P extends ModalfyParams>(props: Props<P>) => {
     [],
   )
 
-  const { backBehavior, backdropAnimationDuration, backdropColor, backdropOpacity } = useMemo(
+  const { /* backBehavior, */ backdropAnimationDuration, backdropColor,/* backdropOpacity  */} = useMemo(
     () => getStackItemOptions(Array.from(stack.openedItems).pop(), stack),
     [stack],
   )
@@ -94,38 +94,38 @@ const ModalStack = <P extends ModalfyParams>(props: Props<P>) => {
     return [...stack.openedItems].map(renderStackItem)
   }
 
-  const onBackdropPress = () => {
-    if (backBehavior === 'none') return
+  // const onBackdropPress = () => {
+  //   if (backBehavior === 'none') return
 
-    const currentItem = [...stack.openedItems].slice(-1)[0]
+  //   const currentItem = [...stack.openedItems].slice(-1)[0]
 
-    if (stack.openedItemsSize === 1) hideBackdrop()
+  //   if (stack.openedItemsSize === 1) hideBackdrop()
 
-    setBackdropClosedItems([...backdropClosedItems, currentItem?.hash])
-  }
+  //   setBackdropClosedItems([...backdropClosedItems, currentItem?.hash])
+  // }
 
-  const renderBackdrop = () => {
-    const onPress = () => onBackdropPress()
-    const backgroundColor =
-      stack.openedItemsSize && backdropColor ? backdropColor : hasChangedBackdropColor ? 'transparent' : 'black'
+  // const renderBackdrop = () => {
+  //   const onPress = () => onBackdropPress()
+  //   const backgroundColor =
+  //     stack.openedItemsSize && backdropColor ? backdropColor : hasChangedBackdropColor ? 'transparent' : 'black'
 
-    return (
-      <TouchableWithoutFeedback onPress={onPress}>
-        <Animated.View
-          style={[
-            styles.backdrop,
-            {
-              backgroundColor,
-              opacity: opacity.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0, backdropOpacity ?? defaultOptions.backdropOpacity!],
-              }),
-            },
-          ]}
-        />
-      </TouchableWithoutFeedback>
-    )
-  }
+  //   return (
+  //     <TouchableWithoutFeedback onPress={onPress}>
+  //       <Animated.View
+  //         style={[
+  //           styles.backdrop,
+  //           {
+  //             backgroundColor,
+  //             opacity: opacity.interpolate({
+  //               inputRange: [0, 1],
+  //               outputRange: [0, backdropOpacity ?? defaultOptions.backdropOpacity!],
+  //             }),
+  //           },
+  //         ]}
+  //       />
+  //     </TouchableWithoutFeedback>
+  //   )
+  // }
 
   return (
     <Animated.View
@@ -134,7 +134,7 @@ const ModalStack = <P extends ModalfyParams>(props: Props<P>) => {
         { opacity, transform: [{ translateY }] },
         Platform.OS === 'web' && stack.openedItemsSize ? styles.containerWeb : null,
       ]}>
-      {renderBackdrop()}
+      {/* {renderBackdrop()} */}
       {renderStack()}
     </Animated.View>
   )
