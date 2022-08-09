@@ -133,6 +133,7 @@ const ModalStack = <P extends ModalfyParams>(props: Props<P>) => {
         styles.container,
         { opacity, transform: [{ translateY }] },
         Platform.OS === 'web' && stack.openedItemsSize ? styles.containerWeb : null,
+        props.rootStyle,
       ]}>
       {renderBackdrop()}
       {renderStack()}

@@ -1,5 +1,5 @@
 import { useCallback } from 'use-memo-one'
-import { BackHandler, Platform } from 'react-native'
+import { BackHandler, Platform, StyleProp, ViewStyle } from 'react-native'
 import React, { ReactNode, useEffect, useRef, useState } from 'react'
 
 import type {
@@ -20,6 +20,7 @@ import { invariant, validateListener } from '../utils'
 interface Props {
   children: ReactNode
   stack: ModalStackType<any>
+  rootStyle?: StyleProp<ViewStyle>
 }
 
 /**
@@ -30,7 +31,7 @@ interface Props {
  *
  * @see https://colorfy-software.gitbook.io/react-native-modalfy/guides/stack#provider
  */
-const ModalProvider = ({ children, stack }: Props) => {
+const ModalProvider = ({ children, stack, rootStyle }: Props) => {
   const modalStateSubscription = useRef<ModalStateSubscription<any> | undefined>()
 
   const modalEventListeners = useRef<ModalEventListeners>(new Set()).current
@@ -139,6 +140,7 @@ const ModalProvider = ({ children, stack }: Props) => {
         {children}
         <ModalStack
           {...contextValue}
+          rootStyle={rootStyle}
           clearListeners={clearListeners}
           registerListener={registerListener}
           eventListeners={modalEventListeners}

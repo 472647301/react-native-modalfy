@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import type { Animated, ViewStyle } from 'react-native'
+import type { Animated, StyleProp, ViewStyle } from 'react-native'
 
 /*  ========================                 ========================
  *
@@ -175,6 +175,7 @@ export interface SharedProps<P extends ModalfyParams> extends ModalContextProvid
     handler: ModalEventCallback,
   ) => ModalEventListener
   removeClosingAction: ModalState<P>['removeClosingAction']
+  rootStyle?: StyleProp<ViewStyle>
 }
 
 export type UsableModalProp<P extends ModalfyParams> = Pick<
