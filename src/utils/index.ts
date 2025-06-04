@@ -22,12 +22,10 @@ export const defaultOptions: ModalOptions = {
   backBehavior: 'pop',
   backdropOpacity: 0.6,
   disableFlingGesture: false,
-  pointerEventsBehavior: 'auto',
-  backdropAnimationDuration: 300,
 }
 
 export { default as invariant } from './invariant'
 export { default as getStackItemData } from './getStackItemData'
 export { default as validateListener } from './validateListener'
 export { default as getStackItemOptions } from './getStackItemOptions'
-export { default as validateDefaultOptions, validateStackItemOptions } from './validateOptions'
+export { default as validateDefaultOptions } from './validateDefaultOptions'

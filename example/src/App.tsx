@@ -39,7 +39,7 @@ const config: ModalStackConfig = {
       easing: Easing.inOut(Easing.exp),
       duration: 500,
     },
-    transitionOptions: animatedValue => ({
+    transitionOptions: (animatedValue) => ({
       transform: [
         {
           translateY: animatedValue.interpolate({
@@ -65,14 +65,16 @@ const animate = (animatedValue: Animated.Value, toValue: number, callback?: () =
     restSpeedThreshold: 0.001,
     restDisplacementThreshold: 0.001,
     useNativeDriver: true,
-  }).start(() => callback?.())
+  }).start(({ finished }) => {
+    if (finished) callback?.()
+  })
 }
 
 const defaultOptions: ModalOptions = {
   backdropOpacity: 0.4,
   animationIn: animate,
   animationOut: animate,
-  transitionOptions: animatedValue => ({
+  transitionOptions: (animatedValue) => ({
     opacity: animatedValue.interpolate({
       inputRange: [0, 1, 2],
       outputRange: [0, 1, 0.9],
@@ -102,15 +104,6 @@ const defaultOptions: ModalOptions = {
       },
     ],
   }),
-  // NOTE: `animateInConfig` or `animateOutConfig` is not used if `animationIn` or `animationOn` is defined.
-  // animateInConfig: {
-  //   easing: Easing.bezier(0.42, -0.03, 0.27, 0.95),
-  //   duration: 450,
-  // },
-  // animateOutConfig: {
-  //   easing: Easing.bezier(0.42, -0.03, 0.27, 0.95),
-  //   duration: 450,
-  // },
 }
 
 const stack = createModalStack<ModalStackParamsList>(config, defaultOptions)

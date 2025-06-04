@@ -1,4 +1,4 @@
-/* eslint-disable react/jsx-one-expression-per-line */
+/* eslint-disable react-native/no-inline-styles */
 import {
   TouchableOpacity,
   StyleSheet,
@@ -10,9 +10,9 @@ import {
   Platform,
 } from 'react-native'
 import {
-  ModalProps,
+  ModalComponentProp,
   ModalComponentWithOptions,
-  ModalOnCloseEventCallback,
+  ModalEventCallback,
   ModalEventListener,
 } from 'react-native-modalfy'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
@@ -21,12 +21,12 @@ import { ModalStackParamsList, ModalName } from '../App'
 
 type ButtonProps = {
   letter: string
-  onPress: () => void
+  onPress: Function
   backgroundColor: ModalStackParamsList[ModalName]['color'] | undefined
 }
 
 type ModalsColorType = {
-  name: ModalStackParamsList[ModalName]['name']
+  name: ModalName
   color: ModalStackParamsList[ModalName]['color']
 }[]
 
@@ -41,24 +41,21 @@ const HOOKS_MODALS_COLOR: ModalsColorType = [
   { name: 'ModalC', color: 'deeppink' },
 ]
 
-const DemoModal: ModalComponentWithOptions<ModalProps<ModalName>> = ({
+const DemoModal: ModalComponentWithOptions<ModalComponentProp<ModalStackParamsList, void, ModalName>> = ({
   modal: { addListener, currentModal, closeModal, closeModals, closeAllModals, getParam, openModal },
 }) => {
   const [otherModals, setOtherModals] = useState<OtherModalsType>([])
 
   const modalListener = useRef<ModalEventListener | undefined>()
 
-  const handleClose: ModalOnCloseEventCallback = useCallback(
-    closingAction => {
-      console.log(`👋 ${currentModal} closed by: ${closingAction.type} • ${closingAction.origin}`)
-    },
-    [currentModal],
-  )
+  const handleClose: ModalEventCallback = useCallback(() => {
+    console.log(`👋 ${currentModal} closed`)
+  }, [currentModal])
 
   const { width } = useWindowDimensions()
 
   const origin = getParam('origin', 'Hooks')
-  const color = getParam('color', 'deeppink')
+  const color = getParam('color', 'darkgreen')
   const modalName = getParam('name')
 
   const Header = () => {
@@ -69,7 +66,7 @@ const DemoModal: ModalComponentWithOptions<ModalProps<ModalName>> = ({
         <View style={[styles.headerTag, { backgroundColor: 'white' }]}>
           <Text style={[styles.headerTagText, { color }]}>{origin?.toLocaleUpperCase()}</Text>
         </View>
-        <TouchableOpacity style={{ padding: 10 }} onPress={onPress}>
+        <TouchableOpacity onPress={onPress} style={{ padding: 10 }}>
           <Text style={{ fontSize: 14 }}>❌</Text>
         </TouchableOpacity>
       </View>
@@ -93,7 +90,7 @@ const DemoModal: ModalComponentWithOptions<ModalProps<ModalName>> = ({
   const Button = ({ letter, onPress, backgroundColor }: ButtonProps) => {
     const onPressButton = () => onPress()
     return (
-      <TouchableOpacity style={[styles.button, { backgroundColor }]} onPress={onPressButton}>
+      <TouchableOpacity onPress={onPressButton} style={[styles.button, { backgroundColor }]}>
         <Text style={styles.buttonText}>{letter}</Text>
       </TouchableOpacity>
     )
@@ -125,7 +122,7 @@ const DemoModal: ModalComponentWithOptions<ModalProps<ModalName>> = ({
 
   useEffect(() => {
     setOtherModals(
-      HOOKS_MODALS_COLOR.filter(entry => entry.name !== modalName).reduce<OtherModalsType>(
+      HOOKS_MODALS_COLOR.filter((entry) => entry.name !== modalName).reduce<OtherModalsType>(
         (output, item) => [...output, { modalName: item.name, color: item.color }],
         [],
       ),
@@ -149,7 +146,7 @@ const DemoModal: ModalComponentWithOptions<ModalProps<ModalName>> = ({
           backgroundColor={otherModals[0]?.color}
           onPress={onPressLeftButton}
         />
-        <TouchableOpacity style={{ justifyContent: 'center', alignItems: 'center' }} onPress={onOpenSameModal}>
+        <TouchableOpacity onPress={onOpenSameModal} style={{ justifyContent: 'center', alignItems: 'center' }}>
           <>
             <Text style={{ fontSize: 40, fontWeight: 'bold', color }}>{modalName}</Text>
             <Text style={{ fontSize: 12, fontWeight: '600' }}>another one?</Text>

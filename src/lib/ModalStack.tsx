@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react'
-import { useCallback, useMemo } from 'use-memo-one'
+import { useMemo } from 'use-memo-one'
+import React, { useEffect, useState, memo } from 'react'
 import { Easing, Animated, StyleSheet, TouchableWithoutFeedback, Platform } from 'react-native'
 
 import type { SharedProps, ModalfyParams, ModalStackItem, ModalPendingClosingAction } from '../types'
 
 import StackItem from './StackItem'
 
-import { defaultOptions, getStackItemOptions, validateStackItemOptions, sh } from '../utils'
+import { getStackItemOptions, sh } from '../utils'
 
-type Props<P extends ModalfyParams> = SharedProps<P>
+type Props<P> = SharedProps<P>
 
 const ModalStack = <P extends ModalfyParams>(props: Props<P>) => {
   const { stack } = props
@@ -19,10 +19,6 @@ const ModalStack = <P extends ModalfyParams>(props: Props<P>) => {
 
   const [openActionCallbacks, setOpenActionCallbacks] = useState<string[]>([])
 
-  const [stackStatus, setStackStatus] = useState<'idle' | 'shown' | 'hiding' | 'hidden'>('idle')
-
-  const canShowStack = stackStatus === 'hiding' || stackStatus === 'shown'
-
   const { opacity, translateY } = useMemo(
     () => ({
       opacity: new Animated.Value(0),
@@ -31,49 +27,45 @@ const ModalStack = <P extends ModalfyParams>(props: Props<P>) => {
     [],
   )
 
-  const {
-    animationIn,
-    animationOut,
-    backBehavior,
-    backdropColor,
-    animateInConfig,
-    backdropOpacity,
-    animateOutConfig,
-    stackContainerStyle,
-    backdropAnimationDuration,
-  } = useMemo(() => getStackItemOptions(Array.from(stack.openedItems).pop(), stack), [stack])
+  const { backBehavior, backdropColor, backdropOpacity } = useMemo(
+    () => getStackItemOptions(Array.from(stack.openedItems).pop(), stack),
+    [stack],
+  )
 
-  const getStackContainerStyle = () => {
-    if (typeof stackContainerStyle === 'object') return stackContainerStyle
-    else if (typeof stackContainerStyle === 'function') return stackContainerStyle(opacity)
-    return {}
-  }
+  useEffect(() => {
+    if (stack.openedItemsSize && backdropColor && backdropColor !== 'black' && !hasChangedBackdropColor) {
+      setBackdropColorStatus(true)
+    }
+  }, [backdropColor, hasChangedBackdropColor, stack.openedItemsSize])
 
-  const hideBackdrop = useCallback(() => {
-    if (stackStatus === 'shown') {
-      setStackStatus('hiding')
+  useEffect(() => {
+    const scrollY = Platform.OS === 'web' ? window.scrollY ?? document.documentElement.scrollTop : 0
+    if (stack.openedItemsSize) {
+      translateY.setValue(scrollY)
+      Animated.timing(opacity, {
+        toValue: 1,
+        easing: Easing.in(Easing.ease),
+        duration: 300,
+        useNativeDriver: true,
+      }).start()
+    } else {
       Animated.timing(opacity, {
         toValue: 0,
         easing: Easing.inOut(Easing.ease),
-        duration: backdropAnimationDuration,
+        duration: 300,
         useNativeDriver: true,
-      }).start(() => {
-        setStackStatus('hidden')
-        setBackdropClosedItems([])
-        translateY.setValue(sh(100))
+      }).start(({ finished }) => {
+        if (finished) translateY.setValue(sh(100))
       })
     }
-  }, [backdropAnimationDuration, opacity, translateY, stackStatus])
+  }, [opacity, stack.openedItemsSize, translateY])
 
   const renderStackItem = (stackItem: ModalStackItem<P>, index: number) => {
-    const position = stack.openedItems.size - index
-    const isFirstVisibleModal = position === stack.openedItems.size
-    const isLastOpenedModal = position === 1 && stack.openedItems.size === 1
+    const position = stack.openedItemsSize - index
     const pendingClosingAction: ModalPendingClosingAction | undefined = stack.pendingClosingActions
       .values()
       .next().value
     const hasPendingClosingAction = position === 1 && pendingClosingAction?.currentModalHash === stackItem.hash
-
     return (
       <StackItem
         {...props}
@@ -82,14 +74,11 @@ const ModalStack = <P extends ModalfyParams>(props: Props<P>) => {
         key={index}
         zIndex={index + 1}
         position={position}
-        hideBackdrop={hideBackdrop}
         openModal={(...args) => {
           // @ts-ignore
           props.openModal(...args)
-          setOpenActionCallbacks(state => [...state, stackItem.hash])
+          setOpenActionCallbacks((state) => [...state, stackItem.hash])
         }}
-        isLastOpenedModal={isLastOpenedModal}
-        isFirstVisibleModal={isFirstVisibleModal}
         wasOpenCallbackCalled={openActionCallbacks.includes(stackItem.hash)}
         wasClosedByBackdropPress={backdropClosedItems.includes(stackItem.hash)}
         pendingClosingAction={hasPendingClosingAction ? pendingClosingAction : undefined}
@@ -98,7 +87,7 @@ const ModalStack = <P extends ModalfyParams>(props: Props<P>) => {
   }
 
   const renderStack = () => {
-    if (!stack.openedItems.size) return null
+    if (!stack.openedItemsSize) return null
     return [...stack.openedItems].map(renderStackItem)
   }
 
@@ -107,13 +96,24 @@ const ModalStack = <P extends ModalfyParams>(props: Props<P>) => {
 
     const currentItem = [...stack.openedItems].slice(-1)[0]
 
+    if (stack.openedItemsSize === 1) {
+      Animated.timing(opacity, {
+        toValue: 0,
+        easing: Easing.inOut(Easing.ease),
+        duration: 300,
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished) translateY.setValue(sh(100))
+      })
+    }
+
     setBackdropClosedItems([...backdropClosedItems, currentItem?.hash])
   }
 
   const renderBackdrop = () => {
     const onPress = () => onBackdropPress()
     const backgroundColor =
-      stack.openedItems.size && backdropColor ? backdropColor : hasChangedBackdropColor ? 'transparent' : 'black'
+      stack.openedItemsSize && backdropColor ? backdropColor : hasChangedBackdropColor ? 'transparent' : 'black'
 
     return (
       <TouchableWithoutFeedback onPress={onPress}>
@@ -124,7 +124,7 @@ const ModalStack = <P extends ModalfyParams>(props: Props<P>) => {
               backgroundColor,
               opacity: opacity.interpolate({
                 inputRange: [0, 1],
-                outputRange: [0, backdropOpacity ?? defaultOptions.backdropOpacity!],
+                outputRange: [0, backdropOpacity ?? 0.6],
               }),
             },
           ]}
@@ -133,42 +133,17 @@ const ModalStack = <P extends ModalfyParams>(props: Props<P>) => {
     )
   }
 
-  useEffect(() => {
-    if (stack.openedItems.size && backdropColor && backdropColor !== 'black' && !hasChangedBackdropColor) {
-      setBackdropColorStatus(true)
-    }
-  }, [backdropColor, hasChangedBackdropColor, stack.openedItems.size])
-
-  useEffect(() => {
-    const scrollY = Platform.OS === 'web' ? window.scrollY ?? document.documentElement.scrollTop : 0
-    if (stack.openedItems.size) {
-      setStackStatus('shown')
-      translateY.setValue(scrollY)
-      Animated.timing(opacity, {
-        toValue: 1,
-        easing: Easing.in(Easing.ease),
-        duration: backdropAnimationDuration,
-        useNativeDriver: true,
-      }).start()
-    } else hideBackdrop()
-  }, [backdropAnimationDuration, opacity, stack.openedItems.size, translateY])
-
-  useEffect(() => {
-    validateStackItemOptions({ animationIn, animationOut, animateInConfig, animateOutConfig })
-  }, [])
-
-  return canShowStack ? (
+  return (
     <Animated.View
       style={[
         styles.container,
         { opacity, transform: [{ translateY }] },
-        Platform.OS === 'web' && stack.openedItems.size ? styles.containerWeb : null,
-        getStackContainerStyle(),
+        Platform.OS === 'web' && stack.openedItemsSize ? styles.containerWeb : null,
       ]}>
       {renderBackdrop()}
       {renderStack()}
     </Animated.View>
-  ) : null
+  )
 }
 
 const styles = StyleSheet.create({
@@ -190,13 +165,15 @@ const styles = StyleSheet.create({
     height: '100vh',
     width: '100vw',
     zIndex: 0,
-    // mobile viewport units bug fix
-    maxHeight: '-webkit-fill-available',
-    maxWidth: '-webkit-fill-available',
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
   },
 })
 
-export default ModalStack
+export default memo(
+  ModalStack,
+  (prevProps, nextProps) =>
+    prevProps.stack.openedItemsSize === nextProps.stack.openedItemsSize &&
+    prevProps.stack.pendingClosingActionsSize === nextProps.stack.pendingClosingActionsSize,
+)

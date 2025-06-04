@@ -5,8 +5,6 @@ import type { ModalfyParams, UsableModalProp } from '../types'
 import ModalContext from './ModalContext'
 import { modalfy } from './ModalState'
 
-const { closeModal, closeModals, closeAllModals } = modalfy()
-
 /**
  * Hook that exposes Modalfy's API.
  *
@@ -16,6 +14,7 @@ const { closeModal, closeModals, closeAllModals } = modalfy()
  */
 export default function <P extends ModalfyParams>(): UsableModalProp<P> {
   const context = useContext(ModalContext) as UsableModalProp<P>
+  const { closeModal, closeModals, closeAllModals } = modalfy<P>()
   return {
     /**
      * This function closes every open modal.
@@ -23,9 +22,6 @@ export default function <P extends ModalfyParams>(): UsableModalProp<P> {
      * @example modal.closeAllModals(() => console.log('All modals closed'))
      *
      * @see https://colorfy-software.gitbook.io/react-native-modalfy/api/types/modalprop#closeallmodals
-     *
-     * @note We're using modalfy.closeAllModals instead of ModalState.closeAllModals so that the animations
-     * can be triggered appropriately from the synced custom internal state.
      */
     closeAllModals: closeAllModals as UsableModalProp<P>['closeAllModals'],
     /**
@@ -38,9 +34,6 @@ export default function <P extends ModalfyParams>(): UsableModalProp<P> {
      * @example modal.closeModal('Example', () => console.log('Current modal closed'))
      *
      * @see https://colorfy-software.gitbook.io/react-native-modalfy/api/types/modalprop#closemodal
-     *
-     * @note We're using modalfy.closeModal instead of ModalState.closeModal so that the animations
-     * can be triggered appropriately from the synced custom internal state.
      */
     closeModal: closeModal as UsableModalProp<P>['closeModal'],
     /**
@@ -55,12 +48,8 @@ export default function <P extends ModalfyParams>(): UsableModalProp<P> {
      * corresponding to `modalName` (and then closed them).
      *
      * @see https://colorfy-software.gitbook.io/react-native-modalfy/api/types/modalprop#closemodals
-     *
-     * @note We're using modalfy.closeModals instead of ModalState.closeModals so that the animations
-     * can be triggered appropriately from the synced custom internal state.
-
      */
-    closeModals: closeModals as unknown as UsableModalProp<P>['closeModals'],
+    closeModals: closeModals as UsableModalProp<P>['closeModals'],
     /**
      * This value returns the current open modal (`null` if none).
      *

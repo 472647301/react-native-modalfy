@@ -1,6 +1,6 @@
 import { useCallback } from 'use-memo-one'
+import { BackHandler, Platform } from 'react-native'
 import React, { ReactNode, useEffect, useRef, useState } from 'react'
-import { BackHandler, NativeEventSubscription, Platform } from 'react-native'
 
 import type {
   SharedProps,
@@ -11,9 +11,9 @@ import type {
   ModalStack as ModalStackType,
 } from '../types'
 
+import ModalContext from './ModalContext'
 import ModalStack from './ModalStack'
 import ModalState from './ModalState'
-import ModalContext from './ModalContext'
 
 import { invariant, validateListener } from '../utils'
 
@@ -31,8 +31,7 @@ interface Props {
  * @see https://colorfy-software.gitbook.io/react-native-modalfy/guides/stack#provider
  */
 const ModalProvider = ({ children, stack }: Props) => {
-  const backHandlerSubscription = useRef<NativeEventSubscription>()
-  const modalStateSubscription = useRef<ModalStateSubscription<any>>()
+  const modalStateSubscription = useRef<ModalStateSubscription<any> | undefined>()
 
   const modalEventListeners = useRef<ModalEventListeners>(new Set()).current
 
@@ -40,18 +39,18 @@ const ModalProvider = ({ children, stack }: Props) => {
     const { currentModal } = ModalState.getState()
 
     if (!currentModal) {
-      backHandlerSubscription.current = BackHandler.addEventListener('hardwareBackPress', ModalState.handleBackPress)
+      BackHandler.addEventListener('hardwareBackPress', ModalState.handleBackPress)
     }
 
-    ModalState.openModal({ modalName, params, callback, isCalledOutsideOfContext: true })
+    ModalState.openModal(modalName, params, false, callback)
   }
 
   const getParam: SharedProps<any>['getParam'] = (hash, paramName, defaultValue) =>
     ModalState.getParam(hash, paramName, defaultValue)
 
-  const closeModal: SharedProps<any>['closeModal'] = stackItem => ModalState.closeModal(stackItem)
+  const closeModal: SharedProps<any>['closeModal'] = (stackItem) => ModalState.closeModal(stackItem)
 
-  const closeModals: SharedProps<any>['closeModals'] = modalName => ModalState.closeModals(modalName)
+  const closeModals: SharedProps<any>['closeModals'] = (modalName) => ModalState.closeModals(modalName)
 
   const closeAllModals: SharedProps<any>['closeAllModals'] = () => ModalState.closeAllModals()
 
@@ -83,8 +82,8 @@ const ModalProvider = ({ children, stack }: Props) => {
   )
 
   const clearListeners: SharedProps<any>['clearListeners'] = useCallback(
-    hash => {
-      modalEventListeners.forEach(item => {
+    (hash) => {
+      modalEventListeners.forEach((item) => {
         if (item.event.includes(hash)) modalEventListeners.delete(item)
       })
     },
@@ -112,27 +111,27 @@ const ModalProvider = ({ children, stack }: Props) => {
     modalStateSubscription.current = ModalState.subscribe(listener)
 
     return () => {
-      backHandlerSubscription.current?.remove?.()
-      modalStateSubscription.current?.unsubscribe?.()
+      BackHandler.removeEventListener('hardwareBackPress', ModalState.handleBackPress)
+      modalStateSubscription.current?.unsubscribe()
     }
   }, [])
 
   useEffect(() => {
     // NOTE: Used to prevent scrolling on Web when the modal stack is opened.
-    if (Platform.OS === 'web' && contextValue.stack.openedItems.size) {
-      document.body.style.overflow = 'hidden'
+    if (Platform.OS === 'web' && contextValue.stack.openedItemsSize) {
       document.body.style.touchAction = 'none'
+      document.body.style.overflow = 'hidden'
       document.body.style.overscrollBehavior = 'none'
     }
 
     return () => {
       if (Platform.OS === 'web') {
-        document.body.style.overflow = 'auto'
         document.body.style.touchAction = 'auto'
+        document.body.style.overflow = 'auto'
         document.body.style.overscrollBehavior = 'auto'
       }
     }
-  }, [contextValue.stack.openedItems.size])
+  }, [contextValue.stack.openedItemsSize])
 
   return (
     <ModalContext.Provider value={contextValue}>

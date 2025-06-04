@@ -1,10 +1,5 @@
-import {
-  ModalProps,
-  ModalEventListener,
-  ModalOnCloseEventCallback,
-  ModalOnAnimateEventCallback,
-} from 'react-native-modalfy'
 import React, { useCallback, useEffect, useRef } from 'react'
+import { ModalEventCallback, ModalComponentProp, ModalEventListener } from 'react-native-modalfy'
 import { TouchableOpacity, StyleSheet, Animated, Text, View, Platform, useWindowDimensions } from 'react-native'
 
 import { ModalStackParamsList, ModalName } from '../App'
@@ -36,31 +31,25 @@ const Card = ({ title, modalName: name, color }: Props) => {
   )
 }
 
-const IntroModal = ({ modal: { addListener } }: ModalProps<'IntroModal'>) => {
-  const onAnimateListener = useRef<ModalEventListener | undefined>()
-  const onCloseListener = useRef<ModalEventListener | undefined>()
+const IntroModal = ({ modal: { addListener } }: ModalComponentProp<ModalStackParamsList, void, 'IntroModal'>) => {
+  const modalListener = useRef<ModalEventListener | undefined>()
   const animatedValue = useRef(new Animated.Value(0)).current
   const { width } = useWindowDimensions()
 
-  const handleAnimation: ModalOnAnimateEventCallback = useCallback(
-    value => {
+  const handleAnimation: ModalEventCallback = useCallback(
+    (value) => {
       if (value) animatedValue.setValue(value)
     },
     [animatedValue],
   )
 
-  const handleClose: ModalOnCloseEventCallback = useCallback(closingAction => {
-    console.log(`👋 IntroModal closed by: ${closingAction.type} • ${closingAction.origin}`)
-  }, [])
-
   useEffect(() => {
-    onAnimateListener.current = addListener('onAnimate', handleAnimation)
-    onCloseListener.current = addListener('onClose', handleClose)
+    modalListener.current = addListener('onAnimate', handleAnimation)
 
     return () => {
-      onAnimateListener.current?.remove()
+      modalListener.current?.remove()
     }
-  }, [addListener, handleAnimation, handleClose])
+  }, [addListener, handleAnimation])
 
   const Header = () => (
     <Animated.View style={[styles.header, { opacity: animatedValue }]}>

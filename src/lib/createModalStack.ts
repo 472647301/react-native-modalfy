@@ -1,4 +1,4 @@
-import type { ModalStack, ModalStackConfig, ModalOptions, ModalfyParams } from '../types'
+import type { ModalStack, ModalStackConfig, ModalOptions } from '../types'
 
 import { invariant, defaultOptions, getStackItemData, validateDefaultOptions } from '../utils'
 
@@ -12,12 +12,8 @@ import { invariant, defaultOptions, getStackItemData, validateDefaultOptions } f
  *
  * @see https://colorfy-software.gitbook.io/react-native-modalfy/guides/stack
  */
-export default function <P extends ModalfyParams>(
-  config: ModalStackConfig,
-  customDefaultOptions?: ModalOptions,
-): ModalStack<P> {
+export default function <P>(config: ModalStackConfig, customDefaultOptions?: ModalOptions): ModalStack<P> {
   invariant(config, 'You need to provide a config to createModalStack()')
-
   validateDefaultOptions(customDefaultOptions)
 
   const initialStack: ModalStack<P> = {
@@ -27,7 +23,9 @@ export default function <P extends ModalfyParams>(
       ...defaultOptions,
       ...customDefaultOptions,
     },
+    openedItemsSize: 0,
     openedItems: new Set(),
+    pendingClosingActionsSize: 0,
     pendingClosingActions: new Set(),
   }
 
