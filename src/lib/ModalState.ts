@@ -1,4 +1,4 @@
-import { BackHandler } from 'react-native'
+import { BackHandler, Platform } from 'react-native'
 
 import type {
   ModalfyParams,
@@ -93,7 +93,7 @@ const createModalState = (): ModalStateType<any> => {
     const stackItem = content.find((item) => item.name === modalName)
     const hash = `${modalName}_${Math.random().toString(36).substring(2, 11)}`
 
-    if (!currentModal && isCalledOutsideOfContext) {
+    if (!currentModal && isCalledOutsideOfContext && Platform.OS === 'android') {
       BackHandler.addEventListener('hardwareBackPress', handleBackPress)
     }
 

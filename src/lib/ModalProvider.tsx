@@ -38,7 +38,7 @@ const ModalProvider = ({ children, stack }: Props) => {
   const openModal: SharedProps<any>['openModal'] = (modalName, params, callback) => {
     const { currentModal } = ModalState.getState()
 
-    if (!currentModal) {
+    if (!currentModal && Platform.OS === 'android') {
       BackHandler.addEventListener('hardwareBackPress', ModalState.handleBackPress)
     }
 
@@ -111,7 +111,9 @@ const ModalProvider = ({ children, stack }: Props) => {
     modalStateSubscription.current = ModalState.subscribe(listener)
 
     return () => {
-      BackHandler.removeEventListener('hardwareBackPress', ModalState.handleBackPress)
+      if (Platform.OS === 'android') {
+        BackHandler.removeEventListener('hardwareBackPress', ModalState.handleBackPress)
+      }
       modalStateSubscription.current?.unsubscribe()
     }
   }, [])
