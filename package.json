@@ -1,6 +1,6 @@
 {
   "name": "rn-modalfy",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Modal citizen of React Native",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",

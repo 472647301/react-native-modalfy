@@ -71,7 +71,7 @@ const createModalState = (): ModalStateType<any> => {
     equalityFn: ModalStateEqualityChecker<P> = Object.is,
   ): ModalStateSubscription<P> => addSubscriber(createSubscriber(listener, equalityFn))
 
-  const openModal = <P>(
+  const openModal = <P extends ModalfyParams>(
     modalName: Exclude<keyof P, symbol | number>,
     params?: P,
     isCalledOutsideOfContext?: boolean,
@@ -129,7 +129,7 @@ const createModalState = (): ModalStateType<any> => {
     return stackItem?.params?.[paramName] || defaultValue
   }
 
-  const closeModal = <P>(closingElement?: Exclude<keyof P, symbol> | ModalStackItem<P>) => {
+  const closeModal = <P extends ModalfyParams>(closingElement?: Exclude<keyof P, symbol> | ModalStackItem<P>) => {
     const {
       stack: { openedItems, names },
     } = state

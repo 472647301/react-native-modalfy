@@ -1,5 +1,5 @@
 import { useCallback } from 'use-memo-one'
-import { BackHandler, Platform } from 'react-native'
+import { BackHandler, NativeEventSubscription, Platform } from 'react-native'
 import React, { ReactNode, useEffect, useRef, useState } from 'react'
 
 import type {
@@ -34,12 +34,13 @@ const ModalProvider = ({ children, stack }: Props) => {
   const modalStateSubscription = useRef<ModalStateSubscription<any> | undefined>()
 
   const modalEventListeners = useRef<ModalEventListeners>(new Set()).current
+  const backHandler = useRef<NativeEventSubscription>()
 
   const openModal: SharedProps<any>['openModal'] = (modalName, params, callback) => {
     const { currentModal } = ModalState.getState()
 
     if (!currentModal && Platform.OS === 'android') {
-      BackHandler.addEventListener('hardwareBackPress', ModalState.handleBackPress)
+      backHandler.current = BackHandler.addEventListener('hardwareBackPress', ModalState.handleBackPress)
     }
 
     ModalState.openModal(modalName, params, false, callback)
@@ -111,8 +112,8 @@ const ModalProvider = ({ children, stack }: Props) => {
     modalStateSubscription.current = ModalState.subscribe(listener)
 
     return () => {
-      if (Platform.OS === 'android') {
-        BackHandler.removeEventListener('hardwareBackPress', ModalState.handleBackPress)
+      if (Platform.OS === 'android' && backHandler.current) {
+        backHandler.current.remove()
       }
       modalStateSubscription.current?.unsubscribe()
     }
